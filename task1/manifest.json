@@ -1,0 +1,21 @@
+{
+  "name": "Iron Lady Pathfinder",
+  "short_name": "Pathfinder",
+  "description": "AI-powered leadership program discovery for ambitious women",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#E6007E",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["education", "business", "productivity"],
+  "lang": "en",
+  "dir": "ltr"
+}

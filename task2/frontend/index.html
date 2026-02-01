@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iron Lady OpsHub - Internal Operations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'iron-pink': '#E6007E',
+                        'iron-magenta': '#B10373',
+                        'iron-purple': '#2D0A31',
+                        'iron-cream': '#FFF6FA',
+                        'iron-gray': '#F5F5F5',
+                        'iron-text': '#555555',
+                        'iron-success': '#1B9C6E',
+                        'iron-warning': '#FFB300',
+                        'iron-error': '#D32F2F',
+                        'iron-blue': '#0056C1',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #F5F5F5; }
+        
+        /* Sidebar */
+        .sidebar-link.active { background: #E6007E; color: white; }
+        .sidebar-link:hover:not(.active) { background: #3A1145; }
+        
+        /* Cards */
+        .stat-card { 
+            transition: transform 0.2s, box-shadow 0.2s; 
+            border: 1px solid #F0D4E7;
+            box-shadow: 0 4px 10px rgba(230,0,126,0.08);
+        }
+        .stat-card:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 20px rgba(230,0,126,0.15); 
+        }
+        
+        /* Status Badges - Iron Lady Brand */
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-new { background: #FCE4F0; color: #E6007E; border: 1px solid #E6007E; }
+        .badge-contacted { background: #E8F5E9; color: #1B9C6E; border: 1px solid #1B9C6E; }
+        .badge-qualified { background: #E3F2FD; color: #0056C1; border: 1px solid #0056C1; }
+        .badge-enrolled { background: #2D0A31; color: white; }
+        .badge-lost { background: #FFEBEE; color: #D32F2F; border: 1px solid #D32F2F; }
+        .badge-urgent { background: #FFEBEE; color: #D32F2F; border: 1px solid #D32F2F; }
+        .badge-high { background: #FFF8E1; color: #FF8F00; border: 1px solid #FFB300; }
+        
+        /* Buttons */
+        .btn-primary { background: #E6007E; color: white; }
+        .btn-primary:hover { background: #B10373; }
+        .btn-secondary { background: #2D0A31; color: white; }
+        .btn-secondary:hover { background: #3A1145; }
+        
+        /* Modal */
+        .modal { display: none; }
+        .modal.active { display: flex; }
+        .tab-btn.active { border-bottom: 2px solid #E6007E; color: #E6007E; }
+        
+        /* Table */
+        table { border-collapse: separate; border-spacing: 0; }
+        tbody tr { transition: all 0.15s ease; }
+        tbody tr:hover { background: #FFF6FA !important; }
+        
+        /* Headings */
+        h1, h2, h3 { color: #2D0A31; }
+        
+        /* Text */
+        .text-body { color: #555555; }
+        
+        /* Custom Scrollbar */
+        .overflow-y-auto::-webkit-scrollbar {
+            width: 6px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-track {
+            background: #F5E4F0;
+            border-radius: 3px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #E6007E;
+            border-radius: 3px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: #B10373;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-iron-purple text-white flex flex-col">
+            <div class="p-6 border-b border-purple-900">
+                <h1 class="text-xl font-bold text-[#E6007E]">🦁 Iron Lady</h1>
+                <p class="text-sm text-purple-300">OpsHub</p>
+            </div>
+            
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="#dashboard" onclick="event.preventDefault(); showSection('dashboard')" data-section="dashboard" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-900 transition">
+                    <span>📊</span> Dashboard
+                </a>
+                <a href="#leads" onclick="event.preventDefault(); showSection('leads')" data-section="leads" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-900 transition">
+                    <span>👥</span> Leads
+                </a>
+                <a href="#cohorts" onclick="event.preventDefault(); showSection('cohorts')" data-section="cohorts" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-900 transition">
+                    <span>📚</span> Cohorts
+                </a>
+                <a href="#advisors" onclick="event.preventDefault(); showSection('advisors')" data-section="advisors" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-900 transition">
+                    <span>👩‍💼</span> Advisors
+                </a>
+                <a href="#enrollments" onclick="event.preventDefault(); showSection('enrollments')" data-section="enrollments" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-900 transition">
+                    <span>✅</span> Enrollments
+                </a>
+                <a href="#reports" onclick="event.preventDefault(); showSection('reports')" data-section="reports" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-900 transition">
+                    <span>📈</span> Reports
+                </a>
+            </nav>
+            
+            <div class="p-4 border-t border-purple-900">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-iron-pink rounded-full flex items-center justify-center font-bold">A</div>
+                    <div>
+                        <p class="font-medium">Admin</p>
+                        <p class="text-xs text-purple-300">Operations</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto">
+            <!-- Header -->
+            <header class="bg-white border-b border-[#F0D4E7] px-8 py-4 flex items-center justify-between">
+                <div>
+                    <h2 id="pageTitle" class="text-2xl font-bold text-[#2D0A31]">Dashboard</h2>
+                    <p id="pageSubtitle" class="text-[#555555]">Overview of operations</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="refreshData()" class="px-4 py-2 bg-[#F5F5F5] text-[#555555] rounded-lg hover:bg-[#F0D4E7] transition font-medium">
+                        🔄 Refresh
+                    </button>
+                    <button onclick="openModal('addLeadModal')" class="px-4 py-2 bg-[#E6007E] hover:bg-[#B10373] text-white rounded-lg transition font-medium">
+                        + Add Lead
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Dashboard Section -->
+            <section id="dashboardSection" class="p-8">
+                <!-- Stats Cards (Clickable) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div onclick="filterLeadsByStatus('')" class="stat-card bg-white rounded-xl p-6 border-l-4 border-[#E6007E] cursor-pointer hover:shadow-lg transition">
+                        <p class="text-[#555555] text-sm font-medium">Total Leads</p>
+                        <p id="statTotalLeads" class="text-3xl font-bold text-[#2D0A31]">-</p>
+                        <p class="text-xs text-[#1B9C6E] mt-1 font-medium">↑ Click to view all</p>
+                    </div>
+                    <div onclick="filterLeadsByStatus('new')" class="stat-card bg-white rounded-xl p-6 border-l-4 border-[#FFB300] cursor-pointer hover:shadow-lg transition">
+                        <p class="text-[#555555] text-sm font-medium">New (Pending)</p>
+                        <p id="statNewLeads" class="text-3xl font-bold text-[#2D0A31]">-</p>
+                        <p id="statSLABreached" class="text-xs text-[#D32F2F] mt-1 font-medium">- SLA breached</p>
+                    </div>
+                    <div onclick="filterLeadsByStatus('enrolled')" class="stat-card bg-white rounded-xl p-6 border-l-4 border-[#1B9C6E] cursor-pointer hover:shadow-lg transition">
+                        <p class="text-[#555555] text-sm font-medium">Enrolled</p>
+                        <p id="statEnrolled" class="text-3xl font-bold text-[#1B9C6E]">-</p>
+                        <p id="statConversionRate" class="text-xs text-[#555555] mt-1">- conversion</p>
+                    </div>
+                    <div onclick="filterLeadsByPriority('urgent')" class="stat-card bg-white rounded-xl p-6 border-l-4 border-[#D32F2F] cursor-pointer hover:shadow-lg transition">
+                        <p class="text-[#555555] text-sm font-medium">Urgent</p>
+                        <p id="statUrgent" class="text-3xl font-bold text-[#D32F2F]">-</p>
+                        <p class="text-xs text-[#555555] mt-1">Click to view urgent</p>
+                    </div>
+                </div>
+                
+                <!-- Revenue Forecast & SLA Alerts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Revenue Forecast -->
+                    <div class="bg-gradient-to-br from-[#2D0A31] to-[#4A1259] rounded-xl p-6 text-white" style="box-shadow: 0 4px 15px rgba(45,10,49,0.3);">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">💰 Revenue Forecast</h3>
+                            <span class="text-xs bg-white/20 px-2 py-1 rounded">This Month</span>
+                        </div>
+                        <p id="totalRevenueForecast" class="text-4xl font-bold mb-4">₹0</p>
+                        <div id="revenueByProgram" class="space-y-2">
+                            <!-- Revenue breakdown will be rendered here -->
+                        </div>
+                    </div>
+                    
+                    <!-- SLA Alerts -->
+                    <div class="bg-white rounded-xl p-6 border border-[#F0D4E7]" style="box-shadow: 0 4px 10px rgba(230,0,126,0.08);">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-[#2D0A31]">⏰ SLA Alerts</h3>
+                            <span class="text-xs bg-[#FCE4F0] text-[#E6007E] px-2 py-1 rounded font-medium">24hr SLA</span>
+                        </div>
+                        <div id="slaAlerts" class="space-y-3">
+                            <!-- SLA alerts will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Conversion Funnel -->
+                    <div class="bg-white rounded-xl p-6 border border-[#F0D4E7]" style="box-shadow: 0 4px 10px rgba(230,0,126,0.08);">
+                        <h3 class="text-lg font-semibold text-[#2D0A31] mb-4">📊 Conversion Funnel</h3>
+                        <div id="funnelChart" class="space-y-3">
+                            <!-- Funnel bars will be rendered here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Advisor Performance -->
+                    <div class="bg-white rounded-xl p-6 border border-[#F0D4E7]" style="box-shadow: 0 4px 10px rgba(230,0,126,0.08);">
+                        <h3 class="text-lg font-semibold text-[#2D0A31] mb-4 sticky top-0 bg-white pb-2">👩‍💼 Advisor Performance</h3>
+                        <div id="advisorPerformance" class="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                            <!-- Advisor stats will be rendered here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Cohort Fill Rates -->
+                    <div class="bg-white rounded-xl p-6 border border-[#F0D4E7]" style="box-shadow: 0 4px 10px rgba(230,0,126,0.08);">
+                        <h3 class="text-lg font-semibold text-[#2D0A31] mb-4 sticky top-0 bg-white pb-2">📚 Cohort Fill Rates</h3>
+                        <div id="cohortFillRates" class="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                            <!-- Cohort stats will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Leads -->
+                <div class="bg-white rounded-xl p-6 mt-6 border border-[#F0D4E7]" style="box-shadow: 0 4px 10px rgba(230,0,126,0.08);">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-[#2D0A31]">🕐 Recent Leads</h3>
+                        <a href="#" onclick="showSection('leads')" class="text-[#E6007E] text-sm hover:text-[#B10373] font-medium">View all →</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-[#F5E4F0]">
+                                <tr class="text-left text-xs uppercase tracking-wider text-[#2D0A31]">
+                                    <th class="px-3 py-3 font-semibold">Name</th>
+                                    <th class="px-3 py-3 font-semibold">Program</th>
+                                    <th class="px-3 py-3 font-semibold">Advisor</th>
+                                    <th class="px-3 py-3 font-semibold">Status</th>
+                                    <th class="px-3 py-3 font-semibold">Priority</th>
+                                    <th class="px-3 py-3 font-semibold">Quick Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentLeadsTable" class="text-sm divide-y divide-gray-100">
+                                <!-- Recent leads will be rendered here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Leads Section -->
+            <section id="leadsSection" class="p-8 hidden">
+                <!-- View Toggle & Filters -->
+                <div class="bg-white rounded-xl p-5 mb-6 border border-[#F0D4E7]" style="box-shadow: 0 4px 10px rgba(230,0,126,0.08);">
+                    <div class="flex flex-wrap gap-4 items-center">
+                        <!-- View Toggle -->
+                        <div class="flex bg-[#F5E4F0] rounded-lg p-1">
+                            <button onclick="setLeadsView('table')" id="tableViewBtn" class="px-4 py-2 rounded-lg text-sm font-medium transition bg-white text-[#2D0A31] shadow-sm">
+                                📋 Table
+                            </button>
+                            <button onclick="setLeadsView('kanban')" id="kanbanViewBtn" class="px-4 py-2 rounded-lg text-sm font-medium transition text-[#555555] hover:text-[#2D0A31]">
+                                📊 Pipeline
+                            </button>
+                        </div>
+                        
+                        <div class="flex-1 min-w-[200px] relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#555555]">🔍</span>
+                            <input type="text" id="searchLeads" placeholder="Search..." 
+                                class="w-full pl-10 pr-4 py-2.5 border border-[#F0D4E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink focus:border-iron-pink bg-[#FFF6FA] text-[#555555]">
+                        </div>
+                        <select id="filterStatus" class="px-4 py-2.5 border border-[#F0D4E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink bg-white text-[#555555]">
+                            <option value="">All Statuses</option>
+                            <option value="new">New</option>
+                            <option value="contacted">Contacted</option>
+                            <option value="qualified">Qualified</option>
+                            <option value="enrolled">Enrolled</option>
+                            <option value="lost">Lost</option>
+                        </select>
+                        <button onclick="loadLeads()" class="px-5 py-2.5 bg-[#E6007E] hover:bg-[#B10373] text-white rounded-lg transition-all font-medium">
+                            Apply
+                        </button>
+                        <button onclick="exportLeadsCSV()" class="px-5 py-2.5 bg-[#2D0A31] hover:bg-[#3A1145] text-white rounded-lg transition-all font-medium flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            CSV
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Kanban Board View -->
+                <div id="kanbanView" class="hidden mb-6">
+                    <div class="grid grid-cols-5 gap-4">
+                        <!-- NEW Column -->
+                        <div class="bg-[#FCE4F0] rounded-xl p-4 min-h-[500px]">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-semibold text-[#E6007E] flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-[#E6007E]"></span>
+                                    NEW
+                                </h4>
+                                <span id="kanbanNewCount" class="text-xs bg-[#E6007E] text-white px-2 py-1 rounded-full">0</span>
+                            </div>
+                            <div id="kanbanNew" class="space-y-3">
+                                <!-- Cards will be rendered here -->
+                            </div>
+                        </div>
+                        
+                        <!-- CONTACTED Column -->
+                        <div class="bg-[#E8F5E9] rounded-xl p-4 min-h-[500px]">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-semibold text-[#1B9C6E] flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-[#1B9C6E]"></span>
+                                    CONTACTED
+                                </h4>
+                                <span id="kanbanContactedCount" class="text-xs bg-[#1B9C6E] text-white px-2 py-1 rounded-full">0</span>
+                            </div>
+                            <div id="kanbanContacted" class="space-y-3">
+                            </div>
+                        </div>
+                        
+                        <!-- QUALIFIED Column -->
+                        <div class="bg-[#E3F2FD] rounded-xl p-4 min-h-[500px]">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-semibold text-[#0056C1] flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-[#0056C1]"></span>
+                                    QUALIFIED
+                                </h4>
+                                <span id="kanbanQualifiedCount" class="text-xs bg-[#0056C1] text-white px-2 py-1 rounded-full">0</span>
+                            </div>
+                            <div id="kanbanQualified" class="space-y-3">
+                            </div>
+                        </div>
+                        
+                        <!-- ENROLLED Column -->
+                        <div class="bg-[#F3E5F5] rounded-xl p-4 min-h-[500px]">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-semibold text-[#2D0A31] flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-[#2D0A31]"></span>
+                                    ENROLLED
+                                </h4>
+                                <span id="kanbanEnrolledCount" class="text-xs bg-[#2D0A31] text-white px-2 py-1 rounded-full">0</span>
+                            </div>
+                            <div id="kanbanEnrolled" class="space-y-3">
+                            </div>
+                        </div>
+                        
+                        <!-- LOST Column -->
+                        <div class="bg-[#FFEBEE] rounded-xl p-4 min-h-[500px]">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-semibold text-[#D32F2F] flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-[#D32F2F]"></span>
+                                    LOST
+                                </h4>
+                                <span id="kanbanLostCount" class="text-xs bg-[#D32F2F] text-white px-2 py-1 rounded-full">0</span>
+                            </div>
+                            <div id="kanbanLost" class="space-y-3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Leads Table -->
+                <div id="tableView" class="bg-white rounded-xl shadow-sm overflow-x-auto border border-[#F0D4E7]" style="box-shadow: 0 4px 10px rgba(230,0,126,0.08);">
+                    <table class="w-full table-fixed">
+                        <thead class="bg-[#F5E4F0]">
+                            <tr class="text-left text-xs uppercase tracking-wider text-iron-purple">
+                                <th class="px-4 py-4 w-[140px] font-semibold">Name</th>
+                                <th class="px-3 py-4 w-[180px] font-semibold">Contact</th>
+                                <th class="px-3 py-4 w-[80px] font-semibold">Source</th>
+                                <th class="px-3 py-4 w-[130px] font-semibold">Program</th>
+                                <th class="px-3 py-4 w-[100px] font-semibold">Advisor</th>
+                                <th class="px-3 py-4 w-[80px] font-semibold text-center">Status</th>
+                                <th class="px-3 py-4 w-[70px] font-semibold text-center">Priority</th>
+                                <th class="px-3 py-4 w-[140px] font-semibold text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leadsTable" class="text-sm divide-y divide-gray-100">
+                            <!-- Leads will be rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Cohorts Section -->
+            <section id="cohortsSection" class="p-8 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex gap-4">
+                        <button onclick="openModal('addCohortModal')" class="px-4 py-2 bg-iron-pink text-white rounded-lg hover:bg-pink-700">
+                            + New Cohort
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="cohortsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Cohort cards will be rendered here -->
+                </div>
+            </section>
+            
+            <!-- Advisors Section -->
+            <section id="advisorsSection" class="p-8 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <button onclick="openModal('addAdvisorModal')" class="px-4 py-2 bg-iron-pink text-white rounded-lg hover:bg-pink-700">
+                        + Add Advisor
+                    </button>
+                </div>
+                
+                <div id="advisorsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Advisor cards will be rendered here -->
+                </div>
+            </section>
+            
+            <!-- Enrollments Section -->
+            <section id="enrollmentsSection" class="p-8 hidden">
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr class="text-left text-gray-500 text-sm">
+                                <th class="px-6 py-4">Lead</th>
+                                <th class="px-6 py-4">Program</th>
+                                <th class="px-6 py-4">Cohort</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4">Payment</th>
+                                <th class="px-6 py-4">Amount</th>
+                                <th class="px-6 py-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="enrollmentsTable" class="text-sm divide-y">
+                            <!-- Enrollments will be rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Reports Section -->
+            <section id="reportsSection" class="p-8 hidden">
+                <!-- Page Header -->
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-[#2D0A31]">📊 Analytics & Reports</h2>
+                    <p class="text-[#555555] mt-1">Track your lead pipeline performance and channel effectiveness</p>
+                </div>
+                
+                <!-- Summary Stats Row -->
+                <div id="reportsSummary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-gradient-to-br from-[#E6007E] to-[#B10373] rounded-xl p-4 text-white">
+                        <p class="text-sm opacity-80">Total Leads</p>
+                        <p id="reportTotalLeads" class="text-3xl font-bold">-</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-[#1B9C6E] to-[#158a5f] rounded-xl p-4 text-white">
+                        <p class="text-sm opacity-80">Enrolled</p>
+                        <p id="reportEnrolled" class="text-3xl font-bold">-</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-[#0056C1] to-[#004499] rounded-xl p-4 text-white">
+                        <p class="text-sm opacity-80">Conversion Rate</p>
+                        <p id="reportConversion" class="text-3xl font-bold">-</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-[#2D0A31] to-[#4A1259] rounded-xl p-4 text-white">
+                        <p class="text-sm opacity-80">Top Source</p>
+                        <p id="reportTopSource" class="text-2xl font-bold truncate">-</p>
+                    </div>
+                </div>
+                
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Lead Sources Chart -->
+                    <div class="bg-white rounded-xl p-6 border border-[#F0D4E7]" style="box-shadow: 0 4px 10px rgba(230,0,126,0.08);">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-[#2D0A31]">📈 Lead Sources</h3>
+                            <span class="text-xs text-[#555555] bg-[#F5E4F0] px-2 py-1 rounded">Where leads come from</span>
+                        </div>
+                        <div id="sourceChart" class="space-y-4">
+                            <!-- Source chart will be rendered -->
+                        </div>
+                    </div>
+                    
+                    <!-- Program Demand Chart -->
+                    <div class="bg-white rounded-xl p-6 border border-[#F0D4E7]" style="box-shadow: 0 4px 10px rgba(230,0,126,0.08);">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-[#2D0A31]">📊 Program Interest</h3>
+                            <span class="text-xs text-[#555555] bg-[#F5E4F0] px-2 py-1 rounded">Most requested programs</span>
+                        </div>
+                        <div id="programChart" class="space-y-4">
+                            <!-- Program chart will be rendered -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Conversion by Source -->
+                <div class="bg-white rounded-xl p-6 border border-[#F0D4E7] mb-6" style="box-shadow: 0 4px 10px rgba(230,0,126,0.08);">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-[#2D0A31]">🎯 Conversion Rate by Channel</h3>
+                        <span class="text-xs text-[#555555] bg-[#F5E4F0] px-2 py-1 rounded">Which sources convert best</span>
+                    </div>
+                    <div id="conversionBySource" class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <!-- Conversion stats will be rendered -->
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-[#F0D4E7]">
+                        <div class="flex items-center gap-4 text-xs text-[#555555]">
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-[#1B9C6E]"></span> 30%+ (Excellent)</span>
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-[#FFB300]"></span> 15-30% (Good)</span>
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-[#D32F2F]"></span> &lt;15% (Needs Work)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Export Reports -->
+                <div class="bg-white rounded-xl p-6 border border-[#F0D4E7]" style="box-shadow: 0 4px 10px rgba(230,0,126,0.08);">
+                    <h3 class="text-lg font-semibold text-[#2D0A31] mb-4">📥 Download Reports</h3>
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="exportLeadsCSV()" class="px-6 py-3 bg-[#1B9C6E] text-white rounded-lg hover:bg-[#158a5f] font-medium transition flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            All Leads (CSV)
+                        </button>
+                        <button onclick="exportAdvisorReport()" class="px-6 py-3 bg-[#0056C1] text-white rounded-lg hover:bg-[#004499] font-medium transition flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Advisor Performance
+                        </button>
+                        <button onclick="exportCohortReport()" class="px-6 py-3 bg-[#2D0A31] text-white rounded-lg hover:bg-[#3A1145] font-medium transition flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Cohort Status
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Add Lead Modal -->
+    <div id="addLeadModal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 class="text-xl font-semibold">Add New Lead</h3>
+                <button onclick="closeModal('addLeadModal')" class="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <form id="addLeadForm" class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Name *</label>
+                        <input type="text" name="name" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Email *</label>
+                        <input type="email" name="email" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Phone</label>
+                        <input type="tel" name="phone" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Source</label>
+                        <select name="source" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                            <option value="manual">Manual Entry</option>
+                            <option value="website">Website</option>
+                            <option value="referral">Referral</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="event">Event</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Career Stage</label>
+                        <select name="career_stage" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                            <option value="">Select...</option>
+                            <option value="early">Early Career</option>
+                            <option value="mid">Mid Career</option>
+                            <option value="senior">Senior/Executive</option>
+                            <option value="entrepreneur">Entrepreneur</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Recommended Program</label>
+                        <select name="recommended_program" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                            <option value="">Select...</option>
+                            <option value="leadership_essentials">Leadership Essentials</option>
+                            <option value="hundred_board_members">100 Board Members</option>
+                            <option value="csuite_mastery">C-Suite Mastery</option>
+                            <option value="masterclass">Masterclass</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Notes</label>
+                    <textarea name="notes" rows="3" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" onclick="closeModal('addLeadModal')" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-iron-pink text-white rounded-lg hover:bg-pink-700">Create Lead</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Lead Detail Modal -->
+    <div id="leadDetailModal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 id="leadDetailTitle" class="text-xl font-semibold">Lead Details</h3>
+                <button onclick="closeModal('leadDetailModal')" class="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <div id="leadDetailContent" class="p-6">
+                <!-- Lead details will be rendered here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Advisor Detail Modal -->
+    <div id="advisorDetailModal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 overflow-y-auto p-4">
+        <div class="bg-white rounded-xl w-full max-w-3xl mx-auto my-8 shadow-2xl">
+            <!-- Fixed Header -->
+            <div id="advisorModalHeader" class="p-6 flex justify-between items-center bg-gradient-to-r from-[#2D0A31] to-[#4A1259] rounded-t-xl">
+                <div class="flex items-center gap-4">
+                    <div id="advisorAvatar" class="w-16 h-16 bg-[#E6007E] text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">A</div>
+                    <div>
+                        <h3 id="advisorDetailName" class="text-2xl font-bold text-[#FFB6D9]">Advisor Name</h3>
+                        <p id="advisorDetailEmail" class="text-purple-200 text-sm">email@ironlady.co</p>
+                        <p id="advisorDetailSpec" class="text-purple-300 text-xs mt-1">📚 Specialization</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('advisorDetailModal')" class="text-white hover:text-pink-300 text-3xl font-bold w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition">✕</button>
+            </div>
+            <!-- Content -->
+            <div id="advisorDetailContent" class="p-6 max-h-[60vh] overflow-y-auto">
+                <!-- Advisor details will be rendered here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Cohort Modal -->
+    <div id="addCohortModal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-xl w-full max-w-lg mx-4">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 class="text-xl font-semibold">Create New Cohort</h3>
+                <button onclick="closeModal('addCohortModal')" class="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <form id="addCohortForm" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Program *</label>
+                    <select name="program_id" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                        <option value="">Select Program...</option>
+                        <option value="leadership_essentials">Leadership Essentials</option>
+                        <option value="hundred_board_members">100 Board Members</option>
+                        <option value="csuite_mastery">C-Suite Mastery</option>
+                        <option value="masterclass">Masterclass</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Cohort Name *</label>
+                    <input type="text" name="name" required placeholder="e.g., LE March 2026" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Start Date</label>
+                        <input type="date" name="start_date" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">End Date</label>
+                        <input type="date" name="end_date" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Total Seats</label>
+                    <input type="number" name="total_seats" value="30" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                </div>
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" onclick="closeModal('addCohortModal')" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-iron-pink text-white rounded-lg hover:bg-pink-700">Create Cohort</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Add Advisor Modal -->
+    <div id="addAdvisorModal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+        <div class="bg-white rounded-xl w-full max-w-lg mx-4">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 class="text-xl font-semibold">Add New Advisor</h3>
+                <button onclick="closeModal('addAdvisorModal')" class="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <form id="addAdvisorForm" class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Name *</label>
+                        <input type="text" name="name" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Email *</label>
+                        <input type="email" name="email" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Phone</label>
+                        <input type="tel" name="phone" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Max Leads</label>
+                        <input type="number" name="max_leads" value="50" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Specialization</label>
+                    <select name="specialization" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-iron-pink">
+                        <option value="">General (All Programs)</option>
+                        <option value="leadership_essentials">Leadership Essentials</option>
+                        <option value="hundred_board_members">100 Board Members</option>
+                        <option value="csuite_mastery">C-Suite Mastery</option>
+                        <option value="masterclass">Masterclass</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" onclick="closeModal('addAdvisorModal')" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-iron-pink text-white rounded-lg hover:bg-pink-700">Add Advisor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
